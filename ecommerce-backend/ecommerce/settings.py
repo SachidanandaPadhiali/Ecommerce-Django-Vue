@@ -25,14 +25,21 @@ SECRET_KEY = 'django-insecure-w7lfsc5x_fcjr_y_bkl1ddf65u65&p!_4f$r7+41g_gynhigq_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': None
+}
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework',  # for building APIs
-    'products',        # our new app for product management
+    'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'products',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +49,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # must be high in the list
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
