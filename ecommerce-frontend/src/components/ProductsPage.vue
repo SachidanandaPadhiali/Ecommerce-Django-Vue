@@ -1,49 +1,59 @@
 <template>
+  <button class="logout-btn" @click="logout()">LOG OUT</button>
   <div>
-    <h1>Products</h1>
-    
-    <!-- Display list of products -->
-    <ul>
-      <!-- Loop through products array -->
-      <li v-for="product in products" :key="product.id">
-        {{ product.name }} - ${{ product.price }}
-        <!-- Button triggers the edit method -->
-        <button @click="editProduct(product)">Edit</button>
-        <!-- Button triggers the delete method -->
-        <button @click="deleteProduct(product.id)">Delete</button>
-      </li>
-    </ul>
+    <div class="table-title">
+      <h1>Products</h1>
+    </div>
+    <table class="table-fill">
+      <thead>
+        <tr>
+          <th class="text-left">Product</th>
+          <th class="text-left">Price</th>
+          <th class="text-left">Stock</th>
+          <th class="text-left">Edit</th>
+          <th class="text-left">Delete</th>
+        </tr>
+      </thead>
+      <tbody class="table-hover">
+        <tr v-for="product in products" :key="product.id">
+          <td class="text-left">{{ product.name }}</td>
+          <td class="text-center">&#8377;{{ product.price }}</td>
+          <td class="text-center">{{ product.stock }}</td>
+          <td class="text-center"><button class="btn action-btn edit-btn" @click="editProduct(product)"><span
+                class="action-icon">✏️</span>
+              <span>Edit</span>
+            </button></td>
+          <!-- Button triggers the delete method -->
+          <td class="text-center"><button class="btn action-btn delete-btn" @click="deleteProduct(product.id)"> <span
+                class="action-icon">🗑️</span>
+              <span>Delete</span>
+            </button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="container">
+      <button class="btn add-btn" @click="showForm = true">ADD NEW PRODUCT</button>
 
-    <!-- Form to create or update a product -->
-    <form @submit.prevent="submitForm">
-      <input
-        v-model="formData.name"
-        placeholder="Product Name"
-        required
-      />
-      <input
-        v-model.number="formData.price"
-        placeholder="Price"
-        type="number"
-        required
-      />
-      <textarea
-        v-model="formData.description"
-        placeholder="Description"
-      ></textarea>
-      <input
-        v-model.number="formData.stock"
-        placeholder="Stock"
-        type="number"
-        required
-      />
-      <!-- Change button text based on edit vs. add mode -->
-      <button type="submit">
-        {{ formData.id ? 'Update' : 'Add' }} Product
-      </button>
-      <!-- Button to clear/reset the form -->
-      <button type="button" @click="resetForm">Reset</button>
-    </form>
+      <div v-if="showForm" class="popup-overlay">
+        <div class="popup-form">
+          <form @submit.prevent="addProduct">
+            <button class="close-btn" @click="showForm = false">×</button>
+            <input v-model="formData.name" placeholder="Product Name" required />
+            <input v-model.number="formData.price" placeholder="Price" type="number" required />
+            <textarea v-model="formData.description" placeholder="Description"></textarea>
+            <input v-model.number="formData.stock" placeholder="Stock" type="number" required />
+            <div class="actions">
+              <!-- Change button text based on edit vs. add mode -->
+              <button type="submit">
+                {{ formData.id ? 'Update' : 'Add' }} Product
+              </button>
+              <!-- Button to clear/reset the form -->
+              <button class="cancel" type="button" @click="resetForm">Reset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -66,13 +76,21 @@ export default {
       },
       // Base URL for your Django API (adjust if necessary)
       apiUrl: 'http://localhost:8000/api/products/',
+      showForm: false
     };
+  },
+  // Fetch the products as soon as the component is mounted
+  mounted() {
+    this.fetchProducts();
   },
   methods: {
     // Retrieve all products from the server
     fetchProducts() {
-      axios
-        .get(this.apiUrl)
+      axios.get('http://localhost:8000/api/products/', {
+        headers: {
+          Authorization: `Token ${localStorage.getItem('token')}`
+        }
+      })
         .then((response) => {
           this.products = response.data;
         })
@@ -82,25 +100,27 @@ export default {
     },
 
     // Handle form submission to create or update product
-    submitForm() {
+    addProduct() {
       if (this.formData.id) {
-        // If formData has an id, update the existing product
+        // Update existing product
         axios
           .put(`${this.apiUrl}${this.formData.id}/`, this.formData)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
+            this.showForm = false;
           })
           .catch((error) => {
             console.error('Error updating product:', error);
           });
       } else {
-        // Otherwise, create a new product
+        // Create new product
         axios
           .post(this.apiUrl, this.formData)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
+            this.showForm = false;
           })
           .catch((error) => {
             console.error('Error creating product:', error);
@@ -110,6 +130,7 @@ export default {
 
     // Populate the form with product data for editing
     editProduct(product) {
+      this.showForm = true;
       // Use the spread operator to copy product data into formData
       this.formData = { ...product };
     },
@@ -125,7 +146,9 @@ export default {
           console.error('Error deleting product:', error);
         });
     },
-
+    closeForm() {
+      this.showForm = false
+    },
     // Reset the form data to initial values
     resetForm() {
       this.formData = {
@@ -136,34 +159,223 @@ export default {
         id: null,
       };
     },
-  },
-  // Fetch the products as soon as the component is mounted
-  mounted() {
-    this.fetchProducts();
-  },
+    logout() {
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      this.$router.push('/');
+    }
+  }
 };
 </script>
 
-<style scoped>
-/* Basic styling, feel free to customize */
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  margin-bottom: 0.5rem;
-}
-
-input,
-textarea {
+<style>
+.table-title {
   display: block;
-  margin-bottom: 0.5rem;
-  padding: 0.4rem;
-  width: 250px;
+  margin: auto;
+  max-width: 900px;
+  padding: 5px;
+  width: 100%;
 }
 
-button {
-  margin-right: 0.5rem;
+.table-title h1 {
+  color: var(--text-dark);
+  font-size: 40px;
+  text-align: center;
+  font-weight: 1000;
+  font-family: "Roboto", helvetica, arial, sans-serif;
+  text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+}
+
+.table-fill {
+  border-collapse: collapse;
+  margin: auto;
+  max-width: 900px;
+  width: 100%;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+th {
+  color: #D5DDE5;
+  background: var(--text-dark);
+  border-bottom: 4px solid #9ea7af;
+  font-size: 20px;
+  text-transform: uppercase;
+  font-weight: 100;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+tr {
+  color: var(--box-bg);
+  font-weight: normal;
+  text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
+}
+
+tr:hover td {
+  color: var(--text-light);
+  background: var(--hover-bg);
+  border-top: 1px solid #22262e;
+}
+
+td {
+  background: #FFFFFF;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+  font-weight: 300;
+  font-size: 18px;
+  text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
+  border-right: 1px solid #C1C3D1;
+}
+
+td:last-child {
+  border-right: 0px;
+}
+
+th.text-left {
+  text-align: left;
+}
+
+th.text-center {
+  text-align: center;
+}
+
+th.text-right {
+  text-align: right;
+}
+
+td.text-left {
+  text-align: left;
+}
+
+td.text-center {
+  text-align: center;
+}
+
+td.text-right {
+  text-align: right;
+}
+
+/* Base Button Styles */
+.btn {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+
+/* Action Buttons */
+.action-btn {
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-color: cyan;
+  color: cyan;
+}
+
+.delete-btn:hover {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-color: red;
+  color: red;
+}
+
+.container {
+  text-align: center;
+  margin-top: 60px;
+}
+
+.add-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  color: var(--dark-text);
+  border: 2px solid black;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(27, 30, 36, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-form {
+  background-color: #ffffff;
+  padding: 0 10px 10px 10px;
+  border-radius: 12px;
+  width: 300px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.popup-form h2 {
+  margin-bottom: 20px;
+  color: #1B1E24;
+}
+
+.popup-form input,
+.popup-form textarea {
+  display: block;
+  width: 280px;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.actions button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #4E5066;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.actions .cancel {
+  background-color: #ccc;
+  color: #333;
+}
+
+.close-btn {
+  position: relative;
+  float: right;
+  padding: 0;
+  padding-bottom: 10px;
+  background: transparent;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  color: #333;
+}
+
+.close-btn:hover {
+  color: #000;
 }
 </style>

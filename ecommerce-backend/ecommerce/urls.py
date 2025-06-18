@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from products.views import ProductViewSet
+from rest_framework.authtoken.views import obtain_auth_token
+from accounts.views import RegisterView
 
 # Create a router and register our viewset
 router = DefaultRouter()
@@ -25,6 +27,10 @@ router.register('products', ProductViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Include the API router URLs under the /api/ path
+    # Product API routes
     path('api/', include(router.urls)),
+    # Endpoint for token authentication (login)
+    path('api-token-auth/', obtain_auth_token),
+    # Endpoint for user registration
+    path('api/register/', RegisterView.as_view(), name='register'),
 ]
