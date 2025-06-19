@@ -7,27 +7,27 @@
     <table class="table-fill">
       <thead>
         <tr>
-          <th class="text-left">Product</th>
-          <th class="text-left">Price</th>
-          <th class="text-left">Stock</th>
-          <th class="text-left">Edit</th>
-          <th class="text-left">Delete</th>
+          <th class="text-center">Product</th>
+          <th class="text-center">Price</th>
+          <th class="text-center">Stock</th>
+          <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody class="table-hover">
         <tr v-for="product in products" :key="product.id">
-          <td class="text-left">{{ product.name }}</td>
-          <td class="text-center">&#8377;{{ product.price }}</td>
-          <td class="text-center">{{ product.stock }}</td>
-          <td class="text-center"><button class="btn action-btn edit-btn" @click="editProduct(product)"><span
-                class="action-icon">✏️</span>
+          <td class="text-left hoverable">{{ product.name }}</td>
+          <td class="text-center hoverable">&#8377;{{ product.price }}</td>
+          <td class="text-center hoverable">{{ product.stock }}</td>
+          <td class="prod-action">
+            <button class="btn action-btn edit-btn" @click="editProduct(product)">
               <span>Edit</span>
-            </button></td>
-          <!-- Button triggers the delete method -->
-          <td class="text-center"><button class="btn action-btn delete-btn" @click="deleteProduct(product.id)"> <span
-                class="action-icon">🗑️</span>
+            </button>
+            <!-- Button triggers the delete method -->
+            <button class="btn action-btn delete-btn" @click="deleteProduct(product.id)">
               <span>Delete</span>
-            </button></td>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -75,7 +75,7 @@ export default {
         id: null,
       },
       // Base URL for your Django API (adjust if necessary)
-      apiUrl: 'http://localhost:8000/api/products/',
+      apiUrl: `${process.env.VUE_APP_API_URL}/api/products/`,
       showForm: false
     };
   },
@@ -86,17 +86,15 @@ export default {
   methods: {
     // Retrieve all products from the server
     fetchProducts() {
-      axios.get('http://localhost:8000/api/products/', {
+      axios.get(this.apiUrl, {
         headers: {
           Authorization: `Token ${localStorage.getItem('token')}`
         }
-      })
-        .then((response) => {
-          this.products = response.data;
-        })
-        .catch((error) => {
-          console.error('Error fetching products:', error);
-        });
+      }).then((response) => {
+        this.products = response.data;
+      }).catch((error) => {
+        console.error('Error fetching products:', error);
+      });
     },
 
     // Handle form submission to create or update product
@@ -191,20 +189,18 @@ export default {
   border-collapse: collapse;
   margin: auto;
   max-width: 900px;
-  width: 100%;
+  width: 90%;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 th {
   color: #D5DDE5;
   background: var(--text-dark);
-  border-bottom: 4px solid #9ea7af;
+  border-bottom: 4px solid var(--bg-btn);
   font-size: 20px;
   text-transform: uppercase;
-  font-weight: 100;
+  font-weight: var(--font-slim);
   padding: 10px;
-  text-align: left;
-  vertical-align: middle;
 }
 
 tr {
@@ -213,7 +209,7 @@ tr {
   text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
 }
 
-tr:hover td {
+tr:hover td.hoverable {
   color: var(--text-light);
   background: var(--hover-bg);
   border-top: 1px solid #22262e;
@@ -221,7 +217,8 @@ tr:hover td {
 
 td {
   background: #FFFFFF;
-  padding: 10px;
+  padding: 10px 0;
+  max-height: 50px;
   text-align: left;
   vertical-align: middle;
   font-weight: 300;
@@ -258,9 +255,16 @@ td.text-right {
   text-align: right;
 }
 
-/* Base Button Styles */
+.prod-action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  height: 100%;
+}
+
 .btn {
-  padding: 15px 30px;
+  padding: 10px 30px;
   border: none;
   border-radius: 20px;
   font-size: 1rem;
@@ -275,8 +279,6 @@ td.text-right {
   text-decoration: none;
 }
 
-
-/* Action Buttons */
 .action-btn {
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
@@ -285,7 +287,7 @@ td.text-right {
 .edit-btn:hover {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-color: cyan;
-  color: cyan;
+  color: rgb(0, 127, 127);
 }
 
 .delete-btn:hover {
@@ -306,6 +308,11 @@ td.text-right {
   border: 2px solid black;
   border-radius: 50px;
   cursor: pointer;
+}
+
+.add-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--white-text);
 }
 
 .popup-overlay {
@@ -377,5 +384,15 @@ td.text-right {
 
 .close-btn:hover {
   color: #000;
+}
+
+@media only screen and (max-width: 900px) {
+  .table-fill {
+    width: 90%;
+  }
+
+  .table-title {
+    width: 90%;
+  }
 }
 </style>

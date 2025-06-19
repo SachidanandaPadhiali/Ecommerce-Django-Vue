@@ -10,7 +10,16 @@ export default {
   name: 'App'
 };
 </script>
+
 <style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
 body {
   font-family: "Varela Round", sans-serif;
 }
@@ -30,7 +39,7 @@ body {
   --bg: #F9FAFB;
   --bg-grey: #D2D1D2;
   --bg-dark: #123456;
-  --bg-btn: #61aacc;
+  --bg-btn: #cca161;
   --card-bg: #FFFFFF;
   --border: #D1D5DB;
   --success: #10B981;
@@ -52,6 +61,7 @@ body {
   --smaller-font-size: 0.7rem;
 
   /*===== Font weight =====*/
+  --font-slim: 100;
   --font-medium: 400;
   --font-semi-bold: 550;
   --font-bold: 700;
