@@ -21,6 +21,9 @@ from products.views import ProductViewSet
 from rest_framework.authtoken.views import obtain_auth_token
 from accounts.views import RegisterView
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 # Create a router and register our viewset
 router = DefaultRouter()
 router.register('products', ProductViewSet)
@@ -33,4 +36,4 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token),
     # Endpoint for user registration
     path('api/register/', RegisterView.as_view(), name='register'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

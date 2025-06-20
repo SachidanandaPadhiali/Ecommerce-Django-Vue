@@ -38,7 +38,7 @@ body {
   --white-text: #FFFFFF;
   --bg: #F9FAFB;
   --bg-grey: #D2D1D2;
-  --bg-dark: #123456;
+  --bg-dark: #393f45;
   --bg-btn: #cca161;
   --card-bg: #FFFFFF;
   --border: #D1D5DB;
@@ -86,13 +86,14 @@ body {
 }
 
 .logout-btn {
-  margin: 10px 0 0 10px;
-  padding: 15px 30px;
+  margin: 10px;
+  float: right;
+  padding: 10px 30px;
   border: none;
   border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  background-color: #4E5066;
+  font-size: var(--normal-font-size);
+  font-weight: var(--font-semi-bold);
+  background-color: var(--bg-dark);
   color: white;
   cursor: pointer;
 }

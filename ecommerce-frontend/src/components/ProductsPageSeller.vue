@@ -61,7 +61,7 @@
 import axios from 'axios';
 
 export default {
-  name: 'ProductsPage',
+  name: 'ProductsPageSeller',
   data() {
     return {
       // Holds all products fetched from the API
@@ -76,7 +76,7 @@ export default {
       },
       // Base URL for your Django API (adjust if necessary)
       apiUrl: `${process.env.VUE_APP_API_URL}/api/products/`,
-      showForm: false
+      showForm: false,
     };
   },
   // Fetch the products as soon as the component is mounted
@@ -99,10 +99,18 @@ export default {
 
     // Handle form submission to create or update product
     addProduct() {
+      const config = {
+        headers: {
+          Authorization: `Token ${localStorage.getItem('token')}`, // Replace with your real token
+        }
+      };
+
+      console.log(config);
+
       if (this.formData.id) {
         // Update existing product
         axios
-          .put(`${this.apiUrl}${this.formData.id}/`, this.formData)
+          .put(`${this.apiUrl}${this.formData.id}/`, this.formData, config)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
@@ -114,7 +122,7 @@ export default {
       } else {
         // Create new product
         axios
-          .post(this.apiUrl, this.formData)
+          .post(this.apiUrl, this.formData, config)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
