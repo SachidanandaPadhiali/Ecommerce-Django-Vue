@@ -1,14 +1,62 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.conf import settings
+from PIL import Image
+from django.core.files import File
+import os
+
 from .models import Product
 from .serializers import ProductSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
-    # Query for all Product objects from the database
-    queryset = Product.objects.all()
-    # Serializer to convert Product objects to/from JSON
-    serializer_class = ProductSerializer
-    # Only allow authenticated users to modify data;
-    # read-only access is open to everyone.
     permission_classes = [IsAuthenticatedOrReadOnly]
-    permission_classes = [IsAuthenticated]
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def perform_update(self, serializer):
+        product = serializer.save()
+
+        if product.image:
+            # Paths
+            tmp_path = os.path.join(settings.MEDIA_ROOT, product.image.name)
+            final_name = f'images/{product.id}.png'
+            final_path = os.path.join(settings.MEDIA_ROOT, final_name)
+
+            # Convert to PNG and save
+            with Image.open(tmp_path) as img:
+                img = img.convert('RGBA')
+                img.save(final_path, 'PNG')
+
+            # Delete old file
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+            # Reload image from renamed file
+            with open(final_path, 'rb') as f:
+                product.image.save(final_name, File(f), save=False)
+
+            product.save()
+
+    def perform_create(self, serializer):
+        product = serializer.save()
+
+        if product.image:
+            # Paths
+            tmp_path = os.path.join(settings.MEDIA_ROOT, product.image.name)
+            final_name = f'images/{product.id}.png'
+            final_path = os.path.join(settings.MEDIA_ROOT, final_name)
+
+            # Convert to PNG and save
+            with Image.open(tmp_path) as img:
+                img = img.convert('RGBA')
+                img.save(final_path, 'PNG')
+
+            # Delete old file
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+            # Reload image from renamed file
+            with open(final_path, 'rb') as f:
+                product.image.save(final_name, File(f), save=False)
+
+            product.save()

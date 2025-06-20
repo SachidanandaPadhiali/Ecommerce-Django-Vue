@@ -65,7 +65,6 @@ export default {
             this.$router.push('/SignUp');
         },
         handleSignIn() {
-            console.log(this.username, this.password);
             axios
                 .post('http://localhost:8000/api-token-auth/', {
                     username: this.username,

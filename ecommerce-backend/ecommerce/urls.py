@@ -26,8 +26,8 @@ from django.conf.urls.static import static
 
 # Create a router and register our viewset
 router = DefaultRouter()
-router.register('products', ProductViewSet)
-
+#router.register('products', ProductViewSet)
+router.register(r'products', ProductViewSet, basename='product')
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Product API routes

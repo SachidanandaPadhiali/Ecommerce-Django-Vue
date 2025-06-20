@@ -42,6 +42,10 @@
             <input v-model.number="formData.price" placeholder="Price" type="number" required />
             <textarea v-model="formData.description" placeholder="Description"></textarea>
             <input v-model.number="formData.stock" placeholder="Stock" type="number" required />
+            <input type="file" @change="e => formData.image = e.target.files[0]" />
+
+            <p v-if="message" class="message">{{ message }}</p>
+
             <div class="actions">
               <!-- Change button text based on edit vs. add mode -->
               <button type="submit">
@@ -73,7 +77,9 @@ export default {
         price: 0,
         stock: 0,
         id: null,
+        image: null
       },
+      message: '',
       // Base URL for your Django API (adjust if necessary)
       apiUrl: `${process.env.VUE_APP_API_URL}/api/products/`,
       showForm: false,
@@ -96,40 +102,51 @@ export default {
         console.error('Error fetching products:', error);
       });
     },
-
+    handleImage(event) {
+      this.formData.image = event.target.files[0];
+    },
     // Handle form submission to create or update product
     addProduct() {
+      const form = new FormData();
+      form.append('name', this.formData.name);
+      form.append('price', this.formData.price);
+      form.append('stock', this.formData.stock);
+      form.append('description', this.formData.description || '');
+
+      if (this.formData.image) {
+        form.append('image', this.formData.image);
+      }
+
       const config = {
         headers: {
-          Authorization: `Token ${localStorage.getItem('token')}`, // Replace with your real token
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Token ${localStorage.getItem('token')}`
         }
       };
-
-      console.log(config);
 
       if (this.formData.id) {
         // Update existing product
         axios
-          .put(`${this.apiUrl}${this.formData.id}/`, this.formData, config)
+          .put(`${this.apiUrl}${this.formData.id}/`, form, config)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
             this.showForm = false;
           })
           .catch((error) => {
-            console.error('Error updating product:', error);
+            console.error('Error updating product:', error.response?.data || error.message);
           });
       } else {
         // Create new product
         axios
-          .post(this.apiUrl, this.formData, config)
+          .post(this.apiUrl, form, config)
           .then(() => {
             this.fetchProducts();
             this.resetForm();
             this.showForm = false;
           })
           .catch((error) => {
-            console.error('Error creating product:', error);
+            console.error('Error creating product:', error.response?.data || error.message);
           });
       }
     },
