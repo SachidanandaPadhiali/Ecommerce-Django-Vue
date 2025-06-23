@@ -3,9 +3,9 @@
         <img :src="`${this.apiUrl}/${product.id}.png`" alt="Product Image" />
         <div class="info">
             <h2>{{ product.name }}</h2>
-            <p class="price">₹{{ product.price }}</p>
+            <h3 v-if="product.stock === 0">OUT OF STOCK</h3>
+            <p class="price" v-else>₹{{ product.price }}</p>
             <p class="description">{{ product.description }}</p>
-            <button @click="goBack">Back to Products</button>
         </div>
     </div>
 
@@ -39,9 +39,6 @@ export default {
             } finally {
                 this.loading = false;
             }
-        },
-        goBack() {
-            this.$router.push('/products');
         }
     },
     mounted() {

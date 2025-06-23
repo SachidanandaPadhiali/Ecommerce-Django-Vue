@@ -42,7 +42,10 @@
             <input v-model.number="formData.price" placeholder="Price" type="number" required />
             <textarea v-model="formData.description" placeholder="Description"></textarea>
             <input v-model.number="formData.stock" placeholder="Stock" type="number" required />
-            <input type="file" @change="e => formData.image = e.target.files[0]" />
+            <div class="upload-content">
+              <input type="file" id="fileInput" @change="e => formData.image = e.target.files[0]" hidden />
+              <label for="fileInput" class="upload-button">Upload Product Images</label>
+            </div>
 
             <p v-if="message" class="message">{{ message }}</p>
 
@@ -420,4 +423,46 @@ td.text-right {
     width: 90%;
   }
 }
+
+.upload-content {
+  transition: all 0.3s ease;
+}
+
+.upload-box.uploading .upload-content {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.upload-box.uploading .upload-progress {
+  opacity: 1;
+  visibility: visible;
+}
+
+.upload-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #000;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-btn);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.upload-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 15px rgba(251, 185, 147, 0.4);
+}
+
 </style>
