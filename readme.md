@@ -26,3 +26,10 @@ VueCommerce is a modern, responsive e-commerce web application built with Django
 | Database    | SQLite3 (dev), PostgreSQL (prod)   |
 | Auth        | Token via rest_framework Authentication |
 | Deployment  | Docker, Gunicorn, Nginx (optional), Heroku/Railway-ready |
+
+
+## The Project is Currently under Development and above are the features those will be made available very soon.
+### Thank You
+
+### With Love 🧡
+### Sachidananda
