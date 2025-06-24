@@ -28,4 +28,4 @@ class Product(models.Model):
 
     def __str__(self):
         # Returns the product name when the object is printed
-        return self.name
+        return self.name  

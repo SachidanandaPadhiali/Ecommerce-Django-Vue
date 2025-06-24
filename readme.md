@@ -23,6 +23,6 @@ VueCommerce is a modern, responsive e-commerce web application built with Django
 |-------------|----------------|
 | Frontend    | Vue.js 3, Pinia, Vue Router, Axios |
 | Backend     | Django, Django REST Framework      |
-| Database    | SQLite3 (dev), PostgreSQL (prod)   |
+| Database    | MySQL (dev)                        |
 | Auth        | Token via rest_framework Authentication |
 | Deployment  | Docker, Gunicorn, Nginx (optional), Heroku/Railway-ready |
