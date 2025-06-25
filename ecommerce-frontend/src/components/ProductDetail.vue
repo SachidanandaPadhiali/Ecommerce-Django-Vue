@@ -1,4 +1,5 @@
 <template>
+    <NavBar />
     <div class="productPageContainer" v-if="product">
         <div class="productPageImgContainer">
             <div class="productPageImagesBar">
@@ -8,24 +9,44 @@
                 </div>
             </div>
 
-            <div class="productPageFullImage zoom" ref="imgZoom" :class="{ zoom: isDesktop }">
+            <div class="productPageFullImage" ref="imgZoom" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave">
                 <img :src="selectedImage" alt="Product Preview" />
             </div>
         </div>
-        <div class="productPageInfoContainer">
-            <div class="productPageInfo">
-                <h3>{{ product.name }}</h3>
-                <h3 v-if="product.stock === 0">OUT OF STOCK</h3>
-                <div class="productPagePrice" v-else>
-                    <span class="priceBefore">₹{{ product.price }}</span>
-                    <span class="priceAfter">₹{{ product.price }}</span>
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+            <p class="sku">SKU: {{ product.id }} | </p>
+            <h3 v-if="product.stock === 0" class="error">OUT OF STOCK</h3>
+            <div class="productPagePrice" v-else>
+                <span class="price">₹{{ product.price }}</span>
+                <span class="priceAfter">₹{{ product.price }}</span>
+            </div>
+            <p class="payment-info"> <a href="#"></a></p>
+
+            <div class="purchase_wrraper">
+                <!-- Quantity -->
+                <div class="quantity-section">
+                    <button>-</button>
+                    <input type="text" class="quantity-input" value="1">
+                    <button>+</button>
                 </div>
-                <div class="productPageDescription">
-                    <p>{{ product.description }}</p>
+
+                <!-- Purchase -->
+                <div class="purchase" v-if="product.stock > 0">
+                    <button class="addToCart">Add to Cart</button>
+                    <button class="buy-now">Buy Now</button>
                 </div>
-                <div class="productPageButton">
-                    <button class="button"> buy now</button>
-                </div>
+            </div>
+
+            <!-- Additional Info (Free Shipping, Support, Warranty, Delivery) -->
+            <div class="additional-info">
+                <p><strong>Free Shipping on Orders Over $50</strong></p>
+                <p><strong>24/7 Customer Support:</strong> +1-800-123-4567</p>
+                <p><strong>1-Year Manufacturer Warranty</strong></p>
+                <p><strong>Delivery:</strong> 3 - 5 Business Days</p>
+            </div>
+            <div class="tab-content">
+                <p>{{ product.description }}</p>
             </div>
         </div>
     </div>
@@ -35,10 +56,14 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
+import NavBar from "./NavBar.vue";
 
 export default {
-    name: 'ProductPage',
+    name: "ProductPage",
+    components: {
+        NavBar
+    },
     data() {
         return {
             product: null,
@@ -46,71 +71,60 @@ export default {
             apiUrl: `${process.env.VUE_APP_API_URL}`,
             images: [],
             selectedIndex: 0,
-            selectedImage: '',
+            selectedImage: "",
             isDesktop: window.innerWidth >= 768
         };
     },
     mounted() {
-        this.selectedImage = this.images[0];
-        this.selectImage(0);
         this.fetchProduct();
-
-        const imgZoom = this.$refs.imgZoom;
-
-        if (imgZoom) {
-            imgZoom.addEventListener('mousemove', (e) => {
-                const rect = imgZoom.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-
-                imgZoom.style.setProperty('--display', 'block');
-                imgZoom.style.setProperty('--zoom-x', `${(offsetX / rect.width) * 100}%`);
-                imgZoom.style.setProperty('--zoom-y', `${(offsetY / rect.height) * 100}%`);
-            });
-
-            imgZoom.addEventListener('mouseleave', () => {
-                imgZoom.style.setProperty('--display', 'none');
-            });
-        }
+        window.addEventListener("resize", () => {
+            this.isDesktop = window.innerWidth >= 768;
+        });
     },
     methods: {
         async fetchProduct() {
             const id = this.$route.params.id;
-            console.log('product ID :', id);
             try {
-                const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/products/${id}/`);
+                const response = await axios.get(`${this.apiUrl}/api/products/${id}/`);
                 this.product = response.data;
-                console.log('product :', response.data);
                 this.images = [response.data.image];
                 this.selectedImage = response.data.image;
-                this.selectImage(0);
                 this.loading = false;
 
                 this.$nextTick(() => {
-                    if (this.isDesktop && this.$refs.imgZoom) {
-                        const imgZoom = this.$refs.imgZoom;
-                        imgZoom.addEventListener('mousemove', (e) => {
-                            imgZoom.style.setProperty('--display', 'block');
-                            imgZoom.style.setProperty('--zoom-x', `${(e.offsetX / imgZoom.offsetWidth) * 100}%`);
-                            imgZoom.style.setProperty('--zoom-y', `${(e.offsetY / imgZoom.offsetHeight) * 100}%`);
-                        });
-                        imgZoom.addEventListener('mouseleave', () => {
-                            imgZoom.style.setProperty('--display', 'none');
-                        });
-                    }
+                    this.selectImage(0);
                 });
             } catch (error) {
-                console.error('Error fetching product:', error);
+                console.error("Error fetching product:", error);
                 this.loading = false;
             }
         },
         selectImage(index) {
             this.selectedIndex = index;
             this.selectedImage = this.images[index];
+            this.setZoomImage(this.selectedImage);
+        },
+        setZoomImage(imageUrl) {
             const imgZoom = this.$refs.imgZoom;
-            if (imgZoom) {
-                imgZoom.style.setProperty('--img', `url(${this.selectedImage})`);
+            if (imgZoom && this.isDesktop) {
+                imgZoom.style.setProperty("--img", `url(${imageUrl})`);
             }
+        },
+        handleMouseMove(e) {
+            if (!this.isDesktop) return;
+            const imgZoom = this.$refs.imgZoom;
+            const rect = imgZoom.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+            const x = `${(offsetX / rect.width) * 100}%`;
+            const y = `${(offsetY / rect.height) * 100}%`;
+            imgZoom.style.setProperty("--display", "block");
+            imgZoom.style.setProperty("--zoom-x", x);
+            imgZoom.style.setProperty("--zoom-y", y);
+        },
+        handleMouseLeave() {
+            const imgZoom = this.$refs.imgZoom;
+            imgZoom.style.setProperty("--display", "none");
         }
     }
 };
@@ -138,7 +152,6 @@ export default {
     max-height: 400px;
     overflow-y: auto;
     width: 80px;
-    /* Adjust this to your preferred width */
 }
 
 .productPageImagesBar .image {
@@ -179,38 +192,35 @@ export default {
     position: relative;
 }
 
-.productPageFullImage.zoom::before {
+.productPageFullImage::before {
     content: '';
     display: var(--display);
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
     height: 100%;
+    width: 100%;
     background-image: var(--img);
     background-size: 200%;
+    background-repeat: no-repeat;
     background-position: var(--zoom-x) var(--zoom-y);
     pointer-events: none;
     z-index: 1;
 }
 
-
-.background-size .imgDots {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-.imgDots i {
-    font-size: 12px;
-    color: gray;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.imgDots i.selected,
-.imgDots i:hover {
-    color: black;
+.productPageFullImage::after {
+    content: "";
+    display: var(--display);
+    background-image: var(--img);
+    background-size: 150%;
+    background-position: var(--zoom-x) var(--zoom-y);
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
 }
 
 .productPageInfoContainer {
@@ -221,24 +231,240 @@ export default {
 
 .productPagePrice {
     display: flex;
-    justify-content: space-between;
+    gap: 10px;
     font-weight: bold;
     margin: 1rem 0;
 }
 
-.productPageButton {
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
+.priceAfter {
+    text-decoration: line-through;
+    padding-top: 11px;
 }
 
-.button {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    background: black;
-    color: white;
-    border-radius: 4px;
+.product-info {
+    flex: 1.5;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.product-info h1 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.sku {
+    font-size: 14px;
+    color: #999;
+}
+
+.price {
+    font-size: 30px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.payment-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.payment-info a {
+    text-decoration: none;
+    color: #000;
+}
+
+.options {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.option-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.option-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.option-buttons button {
+    padding: 10px 20px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
     cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.option-buttons button.active {
+    border-color: #f4b400;
+    background: #f4b400;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Quantity section */
+.quantity-section {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+
+}
+
+.quantity-section button {
+    padding: 10px 15px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 5px;
+
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    margin: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px 15px;
+}
+
+/* Purchase */
+.purchase_wrraper {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.purchase {
+    display: flex;
+}
+
+.purchase button {
+    padding: 10px 15px;
+    margin: 0px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.addToCart {
+    background-color: var(--bg-btn);
+    color: #fff;
+}
+
+.buy-now {
+    background: #b12704;
+    color: #fff;
+}
+
+.tabs {
+    margin-top: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-content {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+}
+
+.additional-info {
+    font-size: 14px;
+    margin-top: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    text-align: left;
+}
+
+.additional-info p{
+    padding-bottom: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    footer {
+        margin-top: 0px;
+
+    }
+
+    .reviews {
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .related-products {
+        margin-top: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .product-detail {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .product-images,
+    .product-info {
+        flex: none;
+        width: 100%;
+    }
+
+    .product-info h1 {
+        font-size: 22px;
+
+    }
+
+    .price {
+        font-size: 24px;
+
+    }
+
+    .purchase_wrraper {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0px;
+    }
+
+    .purchase {
+        margin: 20px 0px;
+    }
+
+    .purchase button {
+        margin-left: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .quantity-section {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .wishlist {
+        justify-content: center;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .thumbnail-images img {
+        width: 50px;
+        height: 50px;
+    }
+
+
 }
 
 .loading,
@@ -263,7 +489,6 @@ export default {
     }
 
     .productPageImagesBar {
-        flex-direction: column;
         align-items: center;
     }
 }

@@ -15,8 +15,28 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+    history: createWebHistory(),
+    routes,
+    scrollBehavior(to) {
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth'
+      };
+    }
+    return { top: 0 };
+  }
+});
+
+// Navigation Guard to check authentication
+router.beforeEach((to, from, next) => {
+    const isAuthenticated = localStorage.getItem('token'); // Check if token exists
+
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        next('/HomePage'); // Redirect to login
+    } else {
+        next(); // Allow access
+    }
 });
 
 export default router;
