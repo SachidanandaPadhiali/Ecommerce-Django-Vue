@@ -80,6 +80,7 @@ export default {
         window.addEventListener("resize", () => {
             this.isDesktop = window.innerWidth >= 768;
         });
+        this.setupSwipe();
     },
     methods: {
         async fetchProduct() {
@@ -87,7 +88,8 @@ export default {
             try {
                 const response = await axios.get(`${this.apiUrl}/api/products/${id}/`);
                 this.product = response.data;
-                this.images = [response.data.image];
+                this.images = [response.data.image, response.data.image, response.data.image];
+                console.log(this.images);
                 this.selectedImage = response.data.image;
                 this.loading = false;
 
@@ -125,6 +127,38 @@ export default {
         handleMouseLeave() {
             const imgZoom = this.$refs.imgZoom;
             imgZoom.style.setProperty("--display", "none");
+        },
+        setupSwipe() {
+            const el = this.$refs.imgZoom;
+            if (!el || this.isDesktop) return;
+
+            let startX = 0;
+
+            el.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            });
+
+            el.addEventListener('touchend', (e) => {
+                const endX = e.changedTouches[0].clientX;
+                const diff = endX - startX;
+
+                if (Math.abs(diff) > 50) {
+                    if (diff < 0) this.nextImage();  // swipe left
+                    else this.prevImage();           // swipe right
+                }
+            });
+        },
+
+        nextImage() {
+            if (this.selectedIndex < this.images.length - 1) {
+                this.selectImage(this.selectedIndex + 1);
+            }
+        },
+
+        prevImage() {
+            if (this.selectedIndex > 0) {
+                this.selectImage(this.selectedIndex - 1);
+            }
         }
     }
 };
@@ -383,7 +417,7 @@ export default {
     text-align: left;
 }
 
-.additional-info p{
+.additional-info p {
     padding-bottom: 10px;
 }
 
@@ -472,6 +506,26 @@ export default {
     text-align: center;
     font-size: 1.2rem;
     margin-top: 2rem;
+}
+
+@media (max-width: 500px) {
+    .productPageImagesBar {
+        display: none;
+    }
+
+    .productPageFullImage {
+        position: relative;
+        max-width: 500px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .productPageImgContainer {
+        align-items: flex-start;
+        flex-direction: column-reverse;
+    }
 }
 
 @media (min-width: 768px) {
