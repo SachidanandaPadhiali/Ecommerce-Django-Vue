@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'cart.middleware.CartSessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # must be high in the list
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',

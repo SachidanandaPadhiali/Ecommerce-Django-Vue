@@ -20,6 +20,7 @@ from rest_framework.routers import DefaultRouter
 from products.views import ProductViewSet
 from rest_framework.authtoken.views import obtain_auth_token
 from accounts.views import RegisterView
+from cart.views import CartView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -30,10 +31,20 @@ router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
     # Product API routes
     path('api/', include(router.urls)),
+    
     # Endpoint for token authentication (login)
     path('api-token-auth/', obtain_auth_token),
+    
     # Endpoint for user registration
     path('api/register/', RegisterView.as_view(), name='register'),
+    
+    # Endpoint for Cart
+    path('cart/', views.get_cart, name='get_cart'),
+    path('cart/add/', views.add_to_cart, name='add_to_cart'),
+    path('cart/update/', views.update_cart_item, name='update_cart_item'),
+    path('cart/remove/', views.remove_from_cart, name='remove_from_cart'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
